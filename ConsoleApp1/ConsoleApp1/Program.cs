@@ -2,6 +2,7 @@
 using Grpc.Core;
 using Efrei.ExchangeServer;
 using static Efrei.ExchangeServer.ExchangeEngine;
+using System.Threading;
 
 namespace ConsoleApp1
 {
@@ -10,7 +11,7 @@ namespace ConsoleApp1
         static void Main(string[] args)
         {
             Channel chanL = new Channel("localhost:10001", ChannelCredentials.Insecure);
-            ExchangeEngineClient client = new ExchangeEngineClient(chanL);
+            var client = new ExchangeEngineClient(chanL);
             client.PingSrv(new Efrei.ExchangeServer.Void());
             var tradingClient = new Client(client);
 
@@ -31,7 +32,22 @@ namespace ConsoleApp1
             Console.WriteLine(clientId);
             
             while (true)
-            { }
+            {
+                if (clientId.Equals(-1))
+                {
+                    Console.WriteLine("Problème de connexion..");
+                    return;
+                }
+                client.SendOrder(new SendOrderArgs
+                {
+                    InstrumentId = 1,
+                    Price = 9999999,
+                    ClientId = clientId,
+                    Qty = 1
+                });
+                Thread.Sleep(39400);
+            }
+            
         }
     }
 }
