@@ -14,7 +14,8 @@ using static Efrei.ExchangeServer.ExchangeEngine;
 public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
 {
     private ExchangeEngineClient client;
-    
+    public long clientId = -1;
+
     private class rqst
     {
         public long InstrumentId = -1;
@@ -22,43 +23,64 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
         public uint BidQty = 0;
         public uint Ask = 0;
         public uint AskQty = 0;
+
+        public override String ToString()
+        {
+            return ('{'
+                + "\n Instrument: Id = " + InstrumentId.ToString()
+                + "\n Bid: Value = " +  Bid.ToString() + ", Quantity = " + BidQty.ToString()
+                + "\n Ask: Value = " + Ask.ToString() + ", Quantity = " + AskQty.ToString()
+                + "\n}");
+        }
     }
 
-    rqst requestInfo = new rqst();
+    rqst oldRequest = new rqst();
 
     public Client(ExchangeEngineClient client)
     {
         this.client = client;
     }
 
-    public override global::System.Threading.Tasks.Task<global::Efrei.ExchangeServer.Void> NewPrice(global::Efrei.ExchangeServer.NewPriceArgs request, grpc::ServerCallContext context)
+    public void update(NewPriceArgs request)
     {
-        if (requestInfo.InstrumentId == -1)
+        oldRequest.InstrumentId = request.InstrumentId;
+        oldRequest.Bid = request.Bid;
+        oldRequest.BidQty = request.BidQty;
+        oldRequest.Ask = request.Ask;
+        oldRequest.AskQty = request.AskQty;
+    }
+
+
+    public override Task<Efrei.ExchangeServer.Void> NewPrice(NewPriceArgs request, ServerCallContext context)
+    {
+        if (oldRequest.InstrumentId == -1 || oldRequest.InstrumentId == request.InstrumentId)
         {
-            requestInfo.InstrumentId = request.InstrumentId;
-            requestInfo.Bid = request.Bid;
-            requestInfo.BidQty = request.BidQty;
-            requestInfo.Ask = request.Ask;
-            requestInfo.AskQty = request.AskQty;
+            update(request);
         }
         else
         {
-            if (requestInfo.InstrumentId != request.InstrumentId)
-                if (request.Ask < requestInfo.Bid || requestInfo.Bid < request.Ask)
-                {
-                    Console.WriteLine("Opportunity");
-                }
+            if (request.Bid > oldRequest.Ask || request.Ask < oldRequest.Bid)
+            {
+                Console.WriteLine("Type\t|" + oldRequest.InstrumentId + "\t|" + request.InstrumentId);
+                Console.WriteLine("Bid\t|" + oldRequest.Bid + "\t|" + request.Bid);
+                Console.WriteLine("Ask\t|" + oldRequest.Ask + "\t|" + request.Ask);
+                Console.WriteLine();
+                
+               oldRequest.InstrumentId = -1;
+            }
         }
+
+
         return Task.FromResult(new Efrei.ExchangeServer.Void());
     }
 
-    public override global::System.Threading.Tasks.Task<global::Efrei.ExchangeServer.Void> OrderEvent(global::Efrei.ExchangeServer.OrderEventArg request, grpc::ServerCallContext context)
+    public override Task<Efrei.ExchangeServer.Void> OrderEvent(OrderEventArg request, ServerCallContext context)
     {
         Console.WriteLine("OrderEvent :" + request.ToString());
         return Task.FromResult(new Efrei.ExchangeServer.Void());
     }
 
-    public override global::System.Threading.Tasks.Task<global::Efrei.ExchangeServer.Void> Ping(global::Efrei.ExchangeServer.Void request, grpc::ServerCallContext context)
+    public override Task<Efrei.ExchangeServer.Void> Ping(Efrei.ExchangeServer.Void request, ServerCallContext context)
     {
         Console.WriteLine("PING !");
         return Task.FromResult(request);

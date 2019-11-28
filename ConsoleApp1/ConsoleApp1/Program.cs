@@ -10,7 +10,7 @@ namespace ConsoleApp1
     {
         static void Main(string[] args)
         {
-            Channel chanL = new Channel("localhost:10001", ChannelCredentials.Insecure);
+            Channel chanL = new Channel("localhost:50000", ChannelCredentials.Insecure);
             var client = new ExchangeEngineClient(chanL);
             client.PingSrv(new Efrei.ExchangeServer.Void());
             var tradingClient = new Client(client);
@@ -27,7 +27,7 @@ namespace ConsoleApp1
                 Name = "client",
                 Endpoint = "localhost:10003"
             });
-
+            tradingClient.clientId = subs.ClientId;
             var clientId = (ulong)subs.ClientId;
             Console.WriteLine(clientId);
             
@@ -38,13 +38,13 @@ namespace ConsoleApp1
                     Console.WriteLine("Problème de connexion..");
                     return;
                 }
-                client.SendOrder(new SendOrderArgs
+                /*client.SendOrder(new SendOrderArgs
                 {
                     InstrumentId = 1,
                     Price = 9999999,
                     ClientId = clientId,
                     Qty = 1
-                });
+                });*/
                 Thread.Sleep(39400);
             }
             
