@@ -1,0 +1,32 @@
+{
+ "portfolios": [
+  {
+   "openQty": "1",
+   "pnl": "0",
+   "executedQty": "1",
+   "openDeals": [
+    {
+     "qty": 1,
+     "price": "10008"
+    }
+   ]
+  },
+  {
+   "openQty": "0",
+   "pnl": "0",
+   "executedQty": "0",
+   "openDeals": []
+  },
+  {
+   "openQty": "1",
+   "pnl": "0",
+   "executedQty": "1",
+   "openDeals": [
+    {
+     "qty": 1,
+     "price": "10008"
+    }
+   ]
+  }
+ ]
+}

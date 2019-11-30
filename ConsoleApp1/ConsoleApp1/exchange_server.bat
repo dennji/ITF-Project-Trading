@@ -1,1 +1,1 @@
-efrei_exchange_server.exe localhost:10001
+efrei_exchange_server.exe localhost:50000

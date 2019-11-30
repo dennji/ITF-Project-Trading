@@ -30,24 +30,41 @@ namespace ConsoleApp1
             tradingClient.clientId = subs.ClientId;
             var clientId = (ulong)subs.ClientId;
             Console.WriteLine(clientId);
-            
-            while (true)
+            if (clientId.Equals(-1))
             {
-                if (clientId.Equals(-1))
-                {
-                    Console.WriteLine("Problème de connexion..");
-                    return;
-                }
-                /*client.SendOrder(new SendOrderArgs
-                {
-                    InstrumentId = 1,
-                    Price = 9999999,
-                    ClientId = clientId,
-                    Qty = 1
-                });*/
-                Thread.Sleep(39400);
+                Console.WriteLine("Problème de connexion..");
+                return;
             }
             
+            Thread.Sleep(400);
+
+            //tradingClient.sendOrder(clientId, 0, 9999999, 1);
+            /// Le titre va être acheté au titre vendu qui a le prix le plus bas
+            /// car sa limitation est 1000 fois plus haute que le meilleur prix de vente
+
+            //tradingClient.sendOrder(123456, 0, 9999999, 1);
+            /// Le serveur va rejeté l'ordre s'il n'existe pas de client qui possède cet id
+            /// Le serveur peut accepté l'ordre si par hasard un client a cet id.
+
+            //tradingClient.sendOrder(clientId, -1, 9999999, 1);
+            /// Le serveur va rejeté l'ordre car cet id ne correspond à aucun instrument
+
+            //tradingClient.sendOrder(clientId, 10, 9999999, 1);
+            /// Le serveur va rejeté l'ordre car cet id ne correspond à aucun instrument
+
+            //tradingClient.sendOrder(clientId, 0, 9999999, 0);
+            /// Le serveur va rejeté l'ordre passé ne possède aucune quantité
+
+            //tradingClient.sendOrder(clientId, 0, 1, 1);
+            ///À partir d'un certain seuil, les prix trop haut pour la vente
+            ///ou trop bas pour l'achat ne sont pas accepté
+
+            //tradingClient.sendOrder(clientId, 0, -99999, 1);
+            ///À partir d'un certain seuil, les prix trop haut pour la vente
+            ///ou trop bas pour l'achat ne sont pas accepté
+
+            chanL.ShutdownAsync().Wait();
+            Thread.Sleep(48800);
         }
     }
 }

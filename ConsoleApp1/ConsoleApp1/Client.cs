@@ -28,7 +28,7 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
         {
             return ('{'
                 + "\n Instrument: Id = " + InstrumentId.ToString()
-                + "\n Bid: Value = " +  Bid.ToString() + ", Quantity = " + BidQty.ToString()
+                + "\n Bid: Value = " + Bid.ToString() + ", Quantity = " + BidQty.ToString()
                 + "\n Ask: Value = " + Ask.ToString() + ", Quantity = " + AskQty.ToString()
                 + "\n}");
         }
@@ -65,14 +65,15 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
                 Console.WriteLine("Bid\t|" + oldRequest.Bid + "\t|" + request.Bid);
                 Console.WriteLine("Ask\t|" + oldRequest.Ask + "\t|" + request.Ask);
                 Console.WriteLine();
-                
-               oldRequest.InstrumentId = -1;
+
+                oldRequest.InstrumentId = -1;
             }
         }
 
 
         return Task.FromResult(new Efrei.ExchangeServer.Void());
     }
+
 
     public override Task<Efrei.ExchangeServer.Void> OrderEvent(OrderEventArg request, ServerCallContext context)
     {
@@ -84,6 +85,20 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
     {
         Console.WriteLine("PING !");
         return Task.FromResult(request);
+    }
+
+    public SendOrderResponse sendOrder(ulong clientId, int instrumentId, ulong price, int qty)
+    {
+        var sOArgs = new SendOrderArgs
+        {
+            ClientId = clientId,
+            InstrumentId = instrumentId,
+            //sign represents side
+            Qty = qty
+        };
+        if (price != 0)
+            sOArgs.Price = price;
+        return client.SendOrder(sOArgs);
     }
 
 }
