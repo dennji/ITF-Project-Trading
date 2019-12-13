@@ -15,10 +15,14 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
 {
     private ExchangeEngineClient client;
     public long clientId = -1;
+    private int inc = 0;
+    private Channel chanL;
+    static public bool ouvert = true;
+    public int escarcelle = 0;
 
     private class rqst
     {
-        public long InstrumentId = -1;
+        public int InstrumentId = -1;
         public uint Bid = 0;
         public uint BidQty = 0;
         public uint Ask = 0;
@@ -36,9 +40,10 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
 
     rqst oldRequest = new rqst();
 
-    public Client(ExchangeEngineClient client)
+    public Client(ExchangeEngineClient client, Channel channel)
     {
         this.client = client;
+        this.chanL = channel;
     }
 
     public void update(NewPriceArgs request)
@@ -50,6 +55,21 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
         oldRequest.AskQty = request.AskQty;
     }
 
+    public void achat_vente(int idAchat, int idVente)
+    {
+        if (inc <= 6)
+        {
+            sendOrder((ulong)clientId, idAchat, 99999999, 5); 
+            sendOrder((ulong)clientId, idVente, 2, -5);
+            inc++;
+        }
+        else
+        {
+            Thread.Sleep(555);
+            chanL.ShutdownAsync();
+            ouvert = false;
+        }
+    }
 
     public override Task<Efrei.ExchangeServer.Void> NewPrice(NewPriceArgs request, ServerCallContext context)
     {
@@ -59,31 +79,39 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
         }
         else
         {
-            if (request.Bid > oldRequest.Ask || request.Ask < oldRequest.Bid)
-            {
-                Console.WriteLine("Type\t|" + oldRequest.InstrumentId + "\t|" + request.InstrumentId);
-                Console.WriteLine("Bid\t|" + oldRequest.Bid + "\t|" + request.Bid);
-                Console.WriteLine("Ask\t|" + oldRequest.Ask + "\t|" + request.Ask);
-                Console.WriteLine();
-
-                oldRequest.InstrumentId = -1;
-            }
+                if (oldRequest.Ask + 3 < request.Bid || request.Ask + 3 < oldRequest.Bid)
+                {
+                    if (oldRequest.Ask + 3 < request.Bid)
+                    {
+                        achat_vente(oldRequest.InstrumentId, request.InstrumentId);
+                    }
+                    else
+                    if (request.Ask + 3 < oldRequest.Bid)
+                    {
+                        achat_vente(request.InstrumentId, oldRequest.InstrumentId);
+                    }
+                    oldRequest.InstrumentId = -1;
+                }
         }
-
-
         return Task.FromResult(new Efrei.ExchangeServer.Void());
     }
 
 
     public override Task<Efrei.ExchangeServer.Void> OrderEvent(OrderEventArg request, ServerCallContext context)
     {
-        Console.WriteLine("OrderEvent :" + request.ToString());
+        escarcelle += (int)request.Deal.Price * -request.Deal.Qty;
+
+        if (request.Deal.Qty >= 0)
+            Console.WriteLine("Achat de " + Math.Abs(request.Deal.Qty) + " actions à " + request.Deal.Price);
+        else
+            Console.WriteLine("Vente de " + Math.Abs(request.Deal.Qty) + " actions à " + request.Deal.Price + " Votre portefeuille est à " + escarcelle);
+
         return Task.FromResult(new Efrei.ExchangeServer.Void());
     }
 
     public override Task<Efrei.ExchangeServer.Void> Ping(Efrei.ExchangeServer.Void request, ServerCallContext context)
     {
-        Console.WriteLine("PING !");
+        Console.WriteLine("Connexion avec le serveur réussie");
         return Task.FromResult(request);
     }
 
@@ -94,10 +122,10 @@ public class Client : Efrei.ExchangeServer.ExchangeClient.ExchangeClientBase
             ClientId = clientId,
             InstrumentId = instrumentId,
             //sign represents side
-            Qty = qty
-        };
-        if (price != 0)
-            sOArgs.Price = price;
+            Qty = qty,
+            Price = price
+
+    };
         return client.SendOrder(sOArgs);
     }
 

@@ -13,7 +13,7 @@ namespace ConsoleApp1
             Channel chanL = new Channel("localhost:50000", ChannelCredentials.Insecure);
             var client = new ExchangeEngineClient(chanL);
             client.PingSrv(new Efrei.ExchangeServer.Void());
-            var tradingClient = new Client(client);
+            var tradingClient = new Client(client, chanL);
 
             var server = new Server
             {
@@ -29,14 +29,13 @@ namespace ConsoleApp1
             });
             tradingClient.clientId = subs.ClientId;
             var clientId = (ulong)subs.ClientId;
-            Console.WriteLine(clientId);
+            Console.WriteLine("Votre numéro unique client est " + clientId);
             if (clientId.Equals(-1))
             {
                 Console.WriteLine("Problème de connexion..");
                 return;
             }
-            
-            Thread.Sleep(400);
+
 
             //tradingClient.sendOrder(clientId, 0, 9999999, 1);
             /// Le titre va être acheté au titre vendu qui a le prix le plus bas
@@ -62,9 +61,18 @@ namespace ConsoleApp1
             //tradingClient.sendOrder(clientId, 0, -99999, 1);
             ///À partir d'un certain seuil, les prix trop haut pour la vente
             ///ou trop bas pour l'achat ne sont pas accepté
-
-            chanL.ShutdownAsync().Wait();
-            Thread.Sleep(48800);
+            
+            while (Client.ouvert == true)
+            {
+            }
+            Console.WriteLine("----------------------------------------------");
+            Console.WriteLine("----------------------------------------------");
+            if (tradingClient.escarcelle >= 0)
+                Console.WriteLine("Votre portefeuille est positif : Vous avez gagné " + tradingClient.escarcelle);
+            else
+                Console.WriteLine("Votre portefeuille est négatif : Vous avez perdu " + tradingClient.escarcelle);
+            while (true)
+            { }
         }
     }
 }
